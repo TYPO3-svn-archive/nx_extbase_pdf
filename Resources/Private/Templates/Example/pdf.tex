@@ -2,12 +2,13 @@
 
 \usepackage{ucs}
 \usepackage[utf8x]{inputenc}
-\usepackage[ngerman]{babel}
-\usepackage[T1]{fontenc}
+%\usepackage[ngerman]{babel}
+\usepackage[OT1]{fontenc}
 \usepackage{graphicx}
 %\usepackage{eurosym}
+\usepackage{lastpage}
 
-\usepackage[dvips]{hyperref}
+\usepackage[pdftex]{hyperref}
 
 \author{Lienhart Woitok}
 \title{Example}
@@ -17,4 +18,6 @@
   \maketitle
 \section{\fluid{test}}
 \fluid{money->f:format.currency(currencySign: '\$', decimalSeparator: ',', thousandsSeparator: '')}
+
+\pageref{LastPage}
 \end{document}
