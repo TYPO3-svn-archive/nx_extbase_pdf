@@ -1,0 +1,47 @@
+plugin.tx_nxextbasepdf.settings {
+	pdfPageType = {$plugin.tx_nxextbasepdf.settings.pdfPageType}
+}
+
+plugin.tx_nxextbasepdf._CSS_DEFAULT_STYLE (
+	input.f3-form-error {
+		background-color:#FF9F9F;
+		border: 1px #FF0000 solid;
+	}
+
+	.tx-extbasepdf-pi1 table {
+		border-collapse:separate;
+		border-spacing:10px;
+	}
+
+	.tx-extbasepdf-pi1 table th {
+		font-weight:bold;
+	}
+
+	.tx-extbasepdf-pi1 table td {
+		vertical-align:top;
+	}
+)
+
+tx_nxextbasepdf = PAGE
+tx_nxextbasepdf {
+	typeNum = {$plugin.tx_nxextbasepdf.settings.pdfPageType}
+	
+	config {
+		disableAllHeaderCode = 1
+		additionalHeaders = Content-Type: application/pdf
+	}
+	
+	10 = USER
+	10 {
+		userFunc = tx_extbase_dispatcher->dispatch
+		extensionName = NxExtbasePdf
+		pluginName = Pi1
+		controller = Example
+		action = pdf
+		
+		
+		settings =< plugin.tx_nxextbasepdf.settings
+		persistence =<plugin.tx_nxextbasepdf.persistence
+		view =< plugin.tx_nxextbasepdf.view
+	}
+}
