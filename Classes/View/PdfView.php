@@ -25,7 +25,7 @@
 /**
  * A view that renders as pdf via LaTeX
  *
- * @version $Id:$
+ * @version $Id$
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License, version 2
  */
 class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
@@ -100,12 +100,12 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 	}
 	
 	/**
-	 * Find the XHTML template according to $this->templatePathAndFilenamePattern and render the template.
+	 * Find the LaTeX template according to $this->templatePathAndFilenamePattern and render the template.
 	 * If "layoutName" is set in a PostParseFacet callback, it will render the file with the given layout.
 	 *
 	 * @param string $actionName If set, the view of the specified action will be rendered instead. Default is the action specified in the Request object
 	 * @return string Rendered PDF file
-	 * @author Sebastian Kurfürst <sebastian@typo3.org>
+	 * @author Lienhart Woitok <lienhart.woitok@netlogix.de>
 	 */
 	public function render($actionName = NULL) {
 		$content = $this->getPdf(parent::render($actionName));
@@ -117,12 +117,34 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 	}
 	
 	/**
+	 * Find the LaTeX template according to $this->templatePathAndFilenamePattern and render the template.
+	 * If "layoutName" is set in a PostParseFacet callback, it will render the file with the given layout.
+	 *
+	 * @param string $actionName If set, the view of the specified action will be rendered instead. Default is the action specified in the Request object
+	 * @return string Path to rendered PDF file
+	 * @author Lienhart Woitok <lienhart.woitok@netlogix.de>
+	 */
+	public function renderToFile($actionName = NULL) {
+		return $this->buildPdf(parent::render($actionName));
+	}
+	
+	/**
 	 * Run the parsed template through latex compiler and read the resulting pdf
 	 *
 	 * @param string $parsedTemplate The parsed LaTeX template ready for compilation
 	 * @return string Generated PDF
 	 */
 	protected function getPdf($parsedTemplate) {
+		return t3lib_div::getURL($this->buildPdf($parsedTemplate));
+	}
+	
+	/**
+	 * Build a PDF file from the parsed template
+	 *
+	 * @param string $parsedTemplate
+	 * @return string Path to generated PDF file
+	 */
+	protected function buildPdf($parsedTemplate) {
 		$templateHash = $this->buildTemplateHash($parsedTemplate);
 		
 		$pdfPath = $this->getTemporaryDirectory() . $templateHash . '.pdf';
@@ -131,7 +153,7 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 			$this->runLatex($pdfPath, $parsedTemplate);
 		}
 		
-		return t3lib_div::getURL($pdfPath);
+		return $pdfPath;
 	}
 	
 	/**
@@ -156,9 +178,9 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 			$this->runCommand($this->getLatexCommand($texFile));
 			
 			
-		} catch (Tx_ExtbasePdf_Exception_CommandExecutionFailure $e) {
+		} catch (Tx_NxExtbasePdf_Exception_CommandExecutionFailure $e) {
 			// TODO somehow extract the actual error message
-			throw new Tx_ExtbasePdf_Exception_PdfGenerationFailure('Failed to generate PDF. Probaply there is a syntax error in your template file', 1272488425);
+			throw new Tx_NxExtbasePdf_Exception_PdfGenerationFailure('Failed to generate PDF. Probaply there is a syntax error in your template file', 1272488425);
 		}
 		
 	}
@@ -169,7 +191,7 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 	
 	protected function getLatexCommand($texFile) {
 		if (!t3lib_exec::checkCommand($this->pdflatexCommand)) {
-			throw new Tx_ExtbasePdf_Exception_CommandNotFound('The command "' . $this->pdflatexCommand . '" was not found', 1272487533);
+			throw new Tx_NxExtbasePdf_Exception_CommandNotFound('The command "' . $this->pdflatexCommand . '" was not found', 1272487533);
 		}
 		
 		return t3lib_exec::getCommand($this->pdflatexCommand)
@@ -183,7 +205,7 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 		exec($command, $ignoredOutput, $exitCode);
 		
 		if ($exitCode !== 0) {
-			throw new Tx_ExtbasePdf_Exception_CommandExecutionFailure('Failure during execution of command "' . $command . '", exit code ' . $exitCode, 1272488086);
+			throw new Tx_NxExtbasePdf_Exception_CommandExecutionFailure('Failure during execution of command "' . $command . '", exit code ' . $exitCode, 1272488086);
 		}
 	}
 }
