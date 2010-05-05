@@ -43,6 +43,12 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 	protected $pdflatexCommandOptions = '-file-line-error -halt-on-error ';
 	
 	/**
+	 * Path to search input files in LaTeX. Several pathes are separated by :
+	 * @var string
+	 */
+	protected $texInputPath = '.:';
+	
+	/**
 	 * File pattern for resolving the template file
 	 * @var string
 	 */
@@ -59,6 +65,31 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 	 * @var string
 	 */
 	protected $layoutPathAndFilenamePattern = '@layoutRoot/@layout.tex';
+	
+	/**
+	 * Set the TEXINPUTS environment variable. Adds a trailing colon of missing.
+	 *
+	 * @param string $texInputPath TEXINPUTS path specification
+	 * @return void
+	 * @author Lienhart Woitok <lienhart.woitok@netlogix.de>
+	 * @api
+	 */
+	public function setTexInputPath($texInputPath) {
+		$individualPaths = explode(':', $texInputPath);
+		array_walk($individualPaths, array('t3lib_div', 'getFileAbsFileName'));
+		$this->texInputPath = implode(':', $individualPaths) . ':';
+	}
+	
+	/**
+	 * Get the value of the TEXINPUTS environment variable.
+	 *
+	 * @return string TEXINPUTS environment variable
+	 * @author Lienhart Woitok <lienhart.woitok@netlogix.de>
+	 * @api
+	 */
+	public function getTexInputPath() {
+		return $this->texInputPath;
+	}
 	
 	/**
 	 * Initialize view
@@ -79,7 +110,9 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 		if (isset($extbaseFrameworkConfiguration['view']['partialRootPath']) && strlen($extbaseFrameworkConfiguration['view']['partialRootPath']) > 0) {
 			$this->setPartialRootPath(t3lib_div::getFileAbsFileName($extbaseFrameworkConfiguration['view']['partialRootPath']));
 		}
-		
+		if (isset($extbaseFrameworkConfiguration['view']['texInputPath']) && strlen($extbaseFrameworkConfiguration['view']['texInputPath']) > 0) {
+			$this->setTexInputPath('.:' . t3lib_div::getFileAbsFileName($extbaseFrameworkConfiguration['view']['texInputPath']) . ':');
+		}
 	}
 	
 	/**
@@ -236,7 +269,8 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 			throw new Tx_NxExtbasePdf_Exception_CommandNotFound('The command "' . $this->pdflatexCommand . '" was not found', 1272487533);
 		}
 		
-		return t3lib_exec::getCommand($this->pdflatexCommand)
+		return 'TEXINPUTS=' . escapeshellarg($this->texInputPath) . ' '
+			. t3lib_exec::getCommand($this->pdflatexCommand)
 			. ' -output-directory ' . $this->getTemporaryDirectory()
 			. ($this->pdflatexCommandOptions !== '' ? ' ' . $this->pdflatexCommandOptions : '')
 			. ' ' . $texFile;
@@ -279,6 +313,7 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 		// to see if another run of LaTeX is needed
 
 		return $this->scanLogForPattern($logFile, '/LaTeX Warning: Label\(s\) may have changed\. Rerun to get cross-references right\./') !== '';
+		//                                        '/LaTeX Warning: Label\(s\) may have changed\. Rerun to get cross-references right\./'
 	}
 
 	/**
