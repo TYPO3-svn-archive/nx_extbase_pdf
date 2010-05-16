@@ -127,9 +127,9 @@ class Tx_NxExtbasePdf_View_PdfView extends Tx_Fluid_View_TemplateView {
 		
 		$parserConfiguration->setShortHandOpenSymbol('\\\\fluid{');
 		
-		//$interceptor = t3lib_div::makeInstance('Tx_ExtbasePdf_Interceptor_CurlyBrackets');
-		
-		//$parserConfiguration->addInterceptor($interceptor);
+		$interceptor = t3lib_div::makeInstance('Tx_NxExtbasePdf_Interceptor_Escape');
+		$interceptor->injectObjectManager($this->objectManager);
+		$parserConfiguration->addInterceptor($interceptor);
 		return $parserConfiguration;
 	}
 	
